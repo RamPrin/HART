@@ -1,7 +1,6 @@
 from django.http import HttpResponse
-from django.shortcuts import render
 from django.template import loader
-from .models import King, Kingdom, TestCase, Servant
+from .models import King, Servant
 # Create your views here.
 def choose(request):
     template = loader.get_template("index.html")
