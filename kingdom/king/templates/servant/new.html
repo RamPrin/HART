@@ -1,0 +1,11 @@
+<form>
+<p>Servant ID</p>
+<input id="servant-id"></input>
+
+<p>Kingdom</p>
+<select id="kindom-id">
+{% for kingdom in kingdoms %}
+<option value="{{kingdom.id}}">{{kingdom.name}}</option>
+{% endfor %}
+<select>
+</form>

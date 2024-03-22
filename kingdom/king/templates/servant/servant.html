@@ -1,0 +1,10 @@
+<h1>Servant Name: {{name}}</h1>
+<h2>Kingdom: {{kingdom}}</h2>
+<p>Age: {{age}}</p>
+<p>Pigeon: {{pigeon}}</p>
+
+{%if kingdom == "?"%}
+<div style="border: 4px solid red; padding: 20px; width: 30%" onclick="window.location.href='/servant/new/'">
+    <p>We noticed that you are not in any kingdom. Click here to apply</p>
+</dif>
+{% endif %}
