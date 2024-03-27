@@ -29,4 +29,4 @@ class TestCase(models.Model):
     answer = models.BooleanField()
 
     def __str__(self) -> str:
-        return "Tests of " + self.kingdom.name + " kingdom."
+        return "Test of " + self.kingdom.name + " kingdom."
