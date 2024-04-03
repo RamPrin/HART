@@ -1,8 +1,32 @@
+<script>
+    function accept(servant_id){
+        var csrftoken = '{{ csrf_token }}';
+
+        fetch('/king/accept/',{
+            method: "POST",
+            body: JSON.stringify(
+                {
+                    "id": servant_id
+                }
+            ),
+            headers: {'X-CSRFToken': csrftoken}
+        })
+        location.reload()
+    }
+</script>
 <h1>King Name: {{name}}</h1>
 <h2>Kingdom: {{kingdom}}</h2>
 <h3>Servants:</h3>
-{% for servant in servants %}
-<div style="border: 4px solid red; padding-left: 20px; width: 30%; margin-top: 20px">
+{% for servant in accepted_servants %}
+<div style="border: 4px solid green; padding-left: 20px; width: 30%; margin-top: 20px">
+    <p>Name: {{servant.name}}</p>
+    <p>Age: {{servant.age}}</p>
+    <p>Pigeon: {{servant.pigeon}}</p>
+</div>
+{% endfor %}
+<h3>Waiting to be accepted:</h3>
+{% for servant in not_accepted_servants %}
+<div style="border: 4px solid red; padding-left: 20px; width: 30%; margin-top: 20px", onclick="accept( {{servant.id}} )">
     <p>Name: {{servant.name}}</p>
     <p>Age: {{servant.age}}</p>
     <p>Pigeon: {{servant.pigeon}}</p>

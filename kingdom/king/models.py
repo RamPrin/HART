@@ -16,12 +16,13 @@ class King(models.Model):
 
 class Servant(models.Model):
     name = models.CharField(max_length=50)
-    kingdom = models.ForeignKey(Kingdom, on_delete=models.CASCADE, default=None, null=True, blank=True)
+    kingdom = models.ForeignKey(Kingdom, on_delete=models.CASCADE)
     age = models.IntegerField()
-    mail = models.CharField(max_length=50)
+    mail = models.CharField(max_length=50, unique=True)
+    accepted = models.BooleanField(default=False)
 
     def __str__(self) -> str:
-        return self.name + " from " + f"{'?' if self.kingdom is None else self.kingdom.name}" + "."
+        return self.name + " from " + f"{self.kingdom.name}" + "."
 
 class TestCase(models.Model):
     kingdom = models.ForeignKey(Kingdom, on_delete=models.CASCADE)
@@ -29,4 +30,12 @@ class TestCase(models.Model):
     answer = models.BooleanField()
 
     def __str__(self) -> str:
-        return "Test of " + self.kingdom.name + " kingdom."
+        return "Test of " + self.kingdom.name + " kingdom: " + self.question[:5] + '...'
+    
+class TestAnswer(models.Model):
+    servant = models.ForeignKey(Servant, on_delete=models.CASCADE)
+    test = models.ForeignKey(TestCase, on_delete=models.CASCADE)
+    answer = models.BooleanField()
+
+    def __str__(self) -> str:
+        return f"Answer from {self.servant.name} to {self.test.kingdom.name}"

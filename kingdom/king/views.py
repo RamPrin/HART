@@ -1,14 +1,18 @@
-from django.http import HttpResponse
+import json
+import re
+
+
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.template import loader
-from .models import King, Servant, TestCase
-from .forms import ServantForm, TestForm
+from .models import King, Servant, TestCase, Kingdom, TestAnswer
+from .forms import ServantForm, TestForm, SignInForm
 # Create your views here.
 def choose(request):
     template = loader.get_template("index.html")
     return HttpResponse(template.render(request=request))
 
 def start(request):
-    template = loader.get_template("king/k_list.html")
+    template = loader.get_template("king/index.html")
     data = [{"id": k.id,"name": k.name, "kingdom": k.kingdom.name} for k in King.objects.all()]
     print(data)
     context = {
@@ -23,40 +27,69 @@ def king(request, king_id):
     context = {
         "name": king.name,
         "kingdom": king.kingdom.name,
-        "servants": [
+        "accepted_servants": [
             {
+                "id": servant.id,
                 'name': servant.name,
                 'age': servant.age,
                 'pigeon': servant.mail
-            } for servant in servants
+            } for servant in servants if servant.accepted
+        ],
+        "not_accepted_servants": [
+            {
+                "id": servant.id,
+                'name': servant.name,
+                'age': servant.age,
+                'pigeon': servant.mail
+            } for servant in servants if not servant.accepted
         ]
     }
     return HttpResponse(template.render(context, request))
 
+def king_accept(request):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        print(data)
+        id = data['id']
+        if Servant.objects.filter(pk=id).exists():
+            servant = Servant.objects.get(pk=id)
+            if not servant.accepted:
+                servant.accepted = True
+                servant.save()
+            return HttpResponse('')
+        else:
+            return HttpResponseNotFound('No Such ID')
+    
+
 def servant(request):
     template = loader.get_template("servant/index.html")
-    return HttpResponse(template.render(request=request))
+    return HttpResponse(template.render(context={"sign_in_form": SignInForm()}, request=request))
 
-def servant_info(request, servant_id):
-    template = loader.get_template("servant/servant.html")
-    servant = Servant.objects.filter(pk=servant_id).get()
-    context = {
-        "name": servant.name,
-        "kingdom": "?" if servant.kingdom is None else servant.kingdom.name,
-        "age": servant.age,
-        "pigeon": servant.mail
-
-    }
-    return HttpResponse(template.render(context, request))
+def servant_info(request):
+    if request.method == "POST":
+        if Servant.objects.filter(mail=request.POST['email']).exists():
+            template = loader.get_template("servant/servant.html")
+            servant = Servant.objects.get(mail=request.POST['email'])
+            context = {
+                "name": servant.name,
+                "kingdom": "?" if servant.kingdom is None else servant.kingdom.name,
+                "age": servant.age,
+                "pigeon": servant.mail,
+                "accepted": servant.accepted
+            }
+            return HttpResponse(template.render(context, request))
 
 def servant_add_html(request):
     template = loader.get_template("servant/new.html")
     if request.method == 'POST':
         form_data = ServantForm(request.POST)
         if form_data.is_valid():
-            tests = TestCase.objects.filter(kingdom=request.POST['kingdom']).values('question')
-            form_test = TestForm(question_list=tests)    
-            return HttpResponse(template.render(context={"form_data": form_data, "form_test": form_test}, request=request))
+            if Servant.objects.filter(mail=request.POST['email']).exists():
+                return HttpResponse(template.render(context={"form_data": form_data, "user_exists": True}, request=request))
+            else:
+                tests = TestCase.objects.filter(kingdom=request.POST['kingdom']).values('id', 'question')
+                form_test = TestForm(question_list=tests)    
+                return HttpResponse(template.render(context={"form_data": form_data, "form_test": form_test}, request=request))
     else:
         form = ServantForm()
         return HttpResponse(template.render(context={"form_data": form}, request=request))
@@ -64,5 +97,31 @@ def servant_add_html(request):
 
 def servant_create(request):
     if request.method == 'POST':
-        print(request.POST)
-        return HttpResponse("pong")
+        post_data = request.POST
+        servant_data = {}
+        test_data = {}
+        for key in post_data.keys():
+            if 'question-' not in key:
+                servant_data[key] = post_data[key]
+            else:
+                test_data[key] = post_data[key]
+
+        servant = Servant(
+            name=servant_data['name'],
+            age=servant_data['age'],
+            mail=servant_data['email'],
+            kingdom=Kingdom.objects.filter(
+                pk = servant_data['kingdom']
+            ).get()
+        )
+        if servant:
+            for key, val in test_data.items():
+                id = re.search('question-(?P<ID>\d+)', key).group("ID")
+                answer = TestAnswer(
+                    servant=servant,
+                    test=TestCase.objects.get(pk=id),
+                    answer=(val=='1')
+                )
+                servant.save()
+                answer.save()
+        return HttpResponseRedirect(f'/servant/{servant.id}/')

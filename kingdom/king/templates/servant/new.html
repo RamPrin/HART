@@ -8,3 +8,6 @@
     {{form_test}}
     <input type="submit" value="Submit">
 </form>
+{% if user_exists%}
+<p> The user with this email already exists</p>
+{% endif %}

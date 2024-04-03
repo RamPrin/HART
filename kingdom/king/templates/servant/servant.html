@@ -1,5 +1,10 @@
 <h1>Servant Name: {{name}}</h1>
 <h2>Kingdom: {{kingdom}}</h2>
+{% if  accepted%}
+<padding>Status: <span style='color:green'>Accepted</span> </p>
+{% else %}
+<h3>Status: <span style='color:#ff8000'>Pending review</span> </h3>
+{% endif %} 
 <p>Age: {{age}}</p>
 <p>Pigeon: {{pigeon}}</p>
 
