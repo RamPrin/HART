@@ -65,19 +65,31 @@ def servant(request):
     template = loader.get_template("servant/index.html")
     return HttpResponse(template.render(context={"sign_in_form": SignInForm()}, request=request))
 
-def servant_info(request):
+def servant_sign_in(request):
     if request.method == "POST":
         if Servant.objects.filter(mail=request.POST['email']).exists():
-            template = loader.get_template("servant/servant.html")
-            servant = Servant.objects.get(mail=request.POST['email'])
-            context = {
-                "name": servant.name,
-                "kingdom": "?" if servant.kingdom is None else servant.kingdom.name,
-                "age": servant.age,
-                "pigeon": servant.mail,
-                "accepted": servant.accepted
-            }
-            return HttpResponse(template.render(context, request))
+            mail = request.POST['email']
+            print(mail)
+            servant = Servant.objects.get(mail=mail).id
+            return HttpResponseRedirect(f'/servant/{servant}/')
+        else:
+            return HttpResponseNotFound('')
+        
+def servant_info(request, servant_id):
+    if Servant.objects.filter(pk=servant_id).exists():
+        template = loader.get_template("servant/servant.html")
+        servant = Servant.objects.get(pk=servant_id)
+        context = {
+            "name": servant.name,
+            "kingdom": "?" if servant.kingdom is None else servant.kingdom.name,
+            "age": servant.age,
+            "pigeon": servant.mail,
+            "accepted": servant.accepted
+        }
+        return HttpResponse(template.render(context, request))
+    else:
+        return HttpResponseNotFound('')
+
 
 def servant_add_html(request):
     template = loader.get_template("servant/new.html")
@@ -97,6 +109,7 @@ def servant_add_html(request):
 
 def servant_create(request):
     if request.method == 'POST':
+        template = loader.get_template('servant/created.html')
         post_data = request.POST
         servant_data = {}
         test_data = {}
@@ -124,4 +137,20 @@ def servant_create(request):
                 )
                 servant.save()
                 answer.save()
-        return HttpResponseRedirect(f'/servant/{servant.id}/')
+        return HttpResponse(template.render(request=request))
+
+
+def stats(request):
+    template = loader.get_template("stats/index.html")
+    print(template.origin)
+    kings = King.objects.all()
+    kingdoms = []
+    for king in kings:
+        kingdom_ = {}
+        kingdom_['name'] = king.kingdom.name
+        kingdom_['king'] = king.name
+        servants = Servant.objects.filter(kingdom=king.kingdom)
+        kingdom_['applied'] = len(servants.filter(accepted=True))
+        kingdom_['pending'] = len(servants.filter(accepted=False))
+        kingdoms.append(kingdom_)
+    return HttpResponse(template.render(context={'kingdoms': kingdoms}, request=request))
