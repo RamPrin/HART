@@ -22,6 +22,13 @@
     <p>Name: {{servant.name}}</p>
     <p>Age: {{servant.age}}</p>
     <p>Pigeon: {{servant.pigeon}}</p>
+    <p>Questions:</p>
+    {% for answer in servant.answers %}
+    <div style="border: 3px solid blue; padding-left: 5px; margin: 10px">
+        <p>Question: {{answer.question}}</p>
+        <p>{{answer.answer}}</p>
+    </div> 
+    {% endfor %}
 </div>
 {% endfor %}
 <h3>Waiting to be accepted:</h3>
@@ -30,5 +37,11 @@
     <p>Name: {{servant.name}}</p>
     <p>Age: {{servant.age}}</p>
     <p>Pigeon: {{servant.pigeon}}</p>
+    {% for answer in servant.answers %}
+    <div style="border: 3px solid blue; padding-left: 5px; margin: 10px">
+    <p>Question: {{answer.question}}</p>
+    <p>{{answer.answer}}</p> 
+    </div>
+    {% endfor %}
 </div>
 {% endfor %}

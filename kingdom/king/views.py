@@ -32,7 +32,13 @@ def king(request, king_id):
                 "id": servant.id,
                 'name': servant.name,
                 'age': servant.age,
-                'pigeon': servant.mail
+                'pigeon': servant.mail,
+                'answers': [
+                    {
+                        'question': ans.test.question,
+                        'answer': 'Yes' if ans.answer else 'No'
+                    } for ans in TestAnswer.objects.filter(servant=Servant.objects.get(id=servant.id))
+                ]
             } for servant in servants if servant.accepted
         ],
         "not_accepted_servants": [
@@ -40,7 +46,13 @@ def king(request, king_id):
                 "id": servant.id,
                 'name': servant.name,
                 'age': servant.age,
-                'pigeon': servant.mail
+                'pigeon': servant.mail,
+                'answers': [
+                    {
+                        'question': ans.test.question,
+                        'answer': 'Yes' if ans.answer else 'No'
+                    } for ans in TestAnswer.objects.filter(servant=Servant.objects.get(id=servant.id))
+                ]
             } for servant in servants if not servant.accepted
         ]
     }
@@ -49,7 +61,6 @@ def king(request, king_id):
 def king_accept(request):
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
-        print(data)
         id = data['id']
         if Servant.objects.filter(pk=id).exists():
             servant = Servant.objects.get(pk=id)
