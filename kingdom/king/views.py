@@ -2,7 +2,7 @@ import json
 import re
 
 
-from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
+from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound, HttpResponseForbidden
 from django.template import loader
 from .models import King, Servant, TestCase, Kingdom, TestAnswer
 from .forms import ServantForm, TestForm, SignInForm
@@ -26,7 +26,10 @@ def king(request, king_id):
     servants = Servant.objects.filter(kingdom=king.kingdom.id)
     context = {
         "name": king.name,
-        "kingdom": king.kingdom.name,
+        "kingdom": {
+            "name": king.kingdom.name,
+            "id": king.kingdom.id
+        },
         "accepted_servants": [
             {
                 "id": servant.id,
@@ -62,6 +65,10 @@ def king_accept(request):
     if request.method == 'POST':
         data = json.loads(request.body.decode('utf-8'))
         id = data['id']
+        kingdom = data['kingdom']
+        if len(Servant.objects.filter(kingdom=Kingdom.objects.get(id=kingdom))) >= 3:
+            return HttpResponseForbidden("You can not have more than 3 servants per king.")
+
         if Servant.objects.filter(pk=id).exists():
             servant = Servant.objects.get(pk=id)
             if not servant.accepted:

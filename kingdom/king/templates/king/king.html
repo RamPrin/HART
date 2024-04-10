@@ -6,7 +6,8 @@
             method: "POST",
             body: JSON.stringify(
                 {
-                    "id": servant_id
+                    "id": servant_id,
+                    "kingdom": {{kingdom.id}}
                 }
             ),
             headers: {'X-CSRFToken': csrftoken}
@@ -15,7 +16,7 @@
     }
 </script>
 <h1>King Name: {{name}}</h1>
-<h2>Kingdom: {{kingdom}}</h2>
+<h2>Kingdom: {{kingdom.name}}</h2>
 <h3>Servants:</h3>
 {% for servant in accepted_servants %}
 <div style="border: 4px solid green; padding-left: 20px; width: 30%; margin-top: 20px">
