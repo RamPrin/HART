@@ -14,4 +14,7 @@ jobs:
               run: pip install -r requirements.txt
             
             - name: Test
-              run: cd kingdom && python manage.py test
+              run: |
+                cd kingdom
+                python manage.py migrate
+                python manage.py test

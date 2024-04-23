@@ -4,9 +4,6 @@ import re
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden, HttpResponseNotAllowed
 from django.template import loader
 from .models import King, Servant, TestCase, Kingdom, TestAnswer
-from rest_framework_swagger.views import get_swagger_view
-
-schema_view = get_swagger_view(title='API')
 
 def start_api(request):
     if request.method == "GET":
