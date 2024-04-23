@@ -6,6 +6,7 @@ from django.http import HttpResponse, HttpResponseRedirect, HttpResponseNotFound
 from django.template import loader
 from .models import King, Servant, TestCase, Kingdom, TestAnswer
 from .forms import ServantForm, TestForm, SignInForm
+
 # Create your views here.
 def choose(request):
     template = loader.get_template("index.html")
@@ -66,7 +67,7 @@ def king_accept(request):
         data = json.loads(request.body.decode('utf-8'))
         id = data['id']
         kingdom = data['kingdom']
-        if len(Servant.objects.filter(kingdom=Kingdom.objects.get(id=kingdom))) >= 3:
+        if len(Servant.objects.filter(kingdom=Kingdom.objects.get(id=kingdom), accepted=True)) >= 3:
             return HttpResponseForbidden("You can not have more than 3 servants per king.")
 
         if Servant.objects.filter(pk=id).exists():
@@ -74,10 +75,9 @@ def king_accept(request):
             if not servant.accepted:
                 servant.accepted = True
                 servant.save()
-            return HttpResponse('')
+            return HttpResponse('{"status": "OK"}'.encode(), content_type='application/json')
         else:
-            return HttpResponseNotFound('No Such ID')
-    
+            return HttpResponseNotFound('No Such ID') 
 
 def servant(request):
     template = loader.get_template("servant/index.html")
@@ -108,7 +108,6 @@ def servant_info(request, servant_id):
     else:
         return HttpResponseNotFound('')
 
-
 def servant_add_html(request):
     template = loader.get_template("servant/new.html")
     if request.method == 'POST':
@@ -123,7 +122,6 @@ def servant_add_html(request):
     else:
         form = ServantForm()
         return HttpResponse(template.render(context={"form_data": form}, request=request))
-
 
 def servant_create(request):
     if request.method == 'POST':
@@ -157,10 +155,8 @@ def servant_create(request):
                 answer.save()
         return HttpResponse(template.render(request=request))
 
-
 def stats(request):
     template = loader.get_template("stats/index.html")
-    print(template.origin)
     kings = King.objects.all()
     kingdoms = []
     for king in kings:
@@ -171,4 +167,4 @@ def stats(request):
         kingdom_['applied'] = len(servants.filter(accepted=True))
         kingdom_['pending'] = len(servants.filter(accepted=False))
         kingdoms.append(kingdom_)
-    return HttpResponse(template.render(context={'kingdoms': kingdoms}, request=request))
+    return HttpResponse(template.render(context={'kingdoms': kingdoms}, request=request))    
