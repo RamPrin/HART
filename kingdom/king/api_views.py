@@ -1,9 +1,7 @@
 import json
-import re
 
-from django.http import HttpResponse, HttpResponseNotFound, HttpResponseForbidden, HttpResponseNotAllowed
-from django.template import loader
-from .models import King, Servant, TestCase, Kingdom, TestAnswer
+from django.http import HttpResponse, HttpResponseNotFound, HttpResponseNotAllowed
+from .models import King, Servant, TestAnswer
 
 def start_api(request):
     if request.method == "GET":
@@ -77,6 +75,7 @@ def api_servant(request, servant_id):
     if Servant.objects.filter(pk=servant_id).exists():
         servant = Servant.objects.get(pk=servant_id)
         context = {
+            "id": servant.id,
             "name": servant.name,
             "kingdom": {
                 "id": servant.kingdom.id,
@@ -89,7 +88,8 @@ def api_servant(request, servant_id):
         return HttpResponse(
             json.dumps(
                 context
-            ).encode()
+            ).encode(),
+            content_type='application/json'
         )
     else:
         return HttpResponseNotFound('No servant with such ID')
